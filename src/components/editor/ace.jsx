@@ -17,7 +17,7 @@ import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/mode-css";
 
 const Editor = () => {
-    const { ref, filesOpen, currentFile, currentPath, changeFileOpen, setFilesOpen, message } = useContext();
+    const { ref, currentFile, currentPath, changeFileOpen, setFilesOpen, message } = useContext();
 
     const getExt = (path) => {
         if (path == "") return "php";
@@ -55,7 +55,6 @@ const Editor = () => {
         ref.current.editor.session.setScrollTop(currentFile.scrollTop);
         //if(currentFile.session) ref.current.editor.setSession(currentFile.session)
         const element = ref.current.editor.session;
-        console.log(element);
         element.addEventListener("keydown", save);
         return () => element.removeEventListener("keydown", save);
     }, [currentFile]);
