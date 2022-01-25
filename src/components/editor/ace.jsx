@@ -4,9 +4,13 @@ import AceEditor from 'react-ace';
 import { useContext } from "../../utils/context";
 import { saveFile } from '../../utils/ftp';
 
+
 import "ace-builds/webpack-resolver"
+
+import "ace-builds/src-noconflict/ext-language_tools";
+import "ace-builds/src-noconflict/ext-searchbox";
+import "ace-builds/src-noconflict/ext-settings_menu";
 import "ace-builds/src-noconflict/ext-prompt";
-import "ace-builds/src-noconflict/worker-php";
 import "ace-builds/src-noconflict/ext-language_tools";
 import "ace-builds/src-noconflict/ext-searchbox";
 import "ace-builds/src-noconflict/theme-dracula";
@@ -30,12 +34,13 @@ const Editor = () => {
 
     const save = async (e) => {
         if (e.keyCode == 83 && e.ctrlKey == true) {
-            const loading = message('<div class="ui icon message"><i class="notched circle loading icon"></i><div class="content"><div class="header">Carregando...</div></div></div>', -1);
             e.preventDefault();
             e.stopPropagation();
-            loading.remove();
             if (currentPath == "") return false;
-            if (await saveFile(currentFile.path, currentFile.code)) {
+            const loading = message('<div class="ui icon message"><i class="notched circle loading icon"></i><div class="content"><div class="header">Carregando...</div></div></div>', -1);
+            const result = await saveFile(currentFile.path, currentFile.code);
+            loading.remove();
+            if (result) {
                 setFilesOpen((old) => {
                     const _filesOpen = { ...old };
                     _filesOpen[currentPath].isEdit = false;
@@ -54,7 +59,7 @@ const Editor = () => {
         if (ref.current?.editor == null) return;
         ref.current.editor.session.setScrollTop(currentFile.scrollTop);
         //if(currentFile.session) ref.current.editor.setSession(currentFile.session)
-        const element = ref.current.editor.session;
+        const element = ref.current.editor.container;
         element.addEventListener("keydown", save);
         return () => element.removeEventListener("keydown", save);
     }, [currentFile]);
@@ -78,6 +83,34 @@ const Editor = () => {
                 enableLiveAutocompletion={true}
                 enableSnippets={true}
                 showPrintMargin={false}
+                onLoad={(editor) => {
+                    const variableMap = [];
+                    editor.completers.push({
+                        getCompletions: (editor, session, pos, prefix, callback) => {
+                            var token = session.getTokenAt(pos.row, pos.column);
+                            if (!token) return [];
+                            var line = session.getLine(pos.row).substr(0, pos.column);
+                            if (token.type === 'string' && /(\$[\w]*)\[["']([^'"]*)$/i.test(line)) {
+
+                                var variable = line.match(/(\$[\w]*)\[["']([^'"]*)$/i)[1];
+                                console.log(variable);
+                                if (!variableMap[variable]) {
+                                    return [];
+                                }
+
+                                var keys = [];
+                                if (variableMap[variable].type === 'array' && variableMap[variable].value)
+                                    keys = Object.keys(variableMap[variable].value);
+                            }
+                        }
+                    });
+                    /*
+                    editor.completers([() => ({
+                        getCompletions: {
+
+                        }
+                    })])*/
+                }}
             />
         </>
     )

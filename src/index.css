@@ -49,8 +49,14 @@ body{background-color:#282a36 !important;overflow: hidden;}
   body.fullscreen .menu.fixed{display:none}
   body.fullscreen main.ui{margin:0;width:100% !important;}
   body.fullscreen #editor{height:calc(100vh - 26px - 1rem);}
-  #left{width:15rem !important;}
-  #right{width:calc(100% - 15rem) !important;}
+  #left .ui.menu,#left{width:250px !important;}
+  #left .ui.menu .item{
+    white-space: nowrap;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #right{width:calc(100% - 250px) !important;}
   #right>.menu{
     margin:0;
   }
@@ -104,4 +110,41 @@ body{background-color:#282a36 !important;overflow: hidden;}
 }
 .ace-dracula .ace_xml.ace_tag-name{
   color: #ff79c6;
+}
+
+#left .ui.menu a>.icon{
+  float: left;
+  margin: 0 0.5em 0 0;
+}
+#left .treeFolder{
+  margin-left:20px;
+  border-left: 1px dotted #555;
+}
+#left .treeFolder>a{
+  padding-left: 10px;
+}
+.ui.menu .item img.icon-svg{
+  width: 16px !important;
+  float:left;
+  margin: 0 0.5em 0 0 !important;
+}
+/*
+.contextmenu{
+  position: fixed;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:90;
+}*/
+.contextmenu>.ui.menu{
+  position: fixed;
+  z-index:92;
+  background-color: #1c1f2b !important;
+}
+.contextmenu .ui.menu a.item:hover {
+  background-color: rgba(255,255,255,0.12);
+}
+.ui.menu .item.trash{
+  color:#f44336 !important;
 }

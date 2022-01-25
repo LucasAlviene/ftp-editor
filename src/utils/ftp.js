@@ -11,6 +11,7 @@ const api = axios.create({
 api.interceptors.response.use(({data}) => data, (error) => Promise.reject(error));
 
 const root = window.root;
+const system = window.system;
 /*
 Retorna um array
 tree{
@@ -32,7 +33,10 @@ Example:
 Se deseja mudar a lógica, vá no arquivo utils/tree.js
 */
 const loadTree = async() =>{
-    const {data} = await api.post("/tree");
+    const params = new FormData();
+    params.append('system', system);
+    params.append('root', root);
+    const {data} = await api.post("/tree",params);
     return data;
 }
 
@@ -44,6 +48,7 @@ Response: {
 */
 const openFile = async(path) => {
     const params = new FormData();
+    params.append('system', system);
     params.append('root', root);
     params.append('path', path);
 
@@ -60,6 +65,7 @@ Response: {
 
 const saveFile = async(path,data) => {
     const params = new FormData();
+    params.append('system', system);
     params.append('root', root);
     params.append('path', path);
     params.append('data', data);
@@ -74,10 +80,10 @@ Response: {
     status: int (0|1)
 }
 */
-console.log(process.env);
 
 const createFolder = async(path,name) => {
     const params = new FormData();
+    params.append('system', system);
     params.append('root', root);
     params.append('path', path);
     params.append('name', name);
@@ -86,10 +92,33 @@ const createFolder = async(path,name) => {
     return status;
 }
 
+const rename = async(path,name) => {
+    const params = new FormData();
+    params.append('system', system);
+    params.append('root', root);
+    params.append('path', path);
+    params.append('name', name);
+
+    const {status} = await api.post("/rename",params);
+    return status;
+}
+
+const del = async(path) => {
+    const params = new FormData();
+    params.append('system', system);
+    params.append('root', root);
+    params.append('path', path);
+
+    const {status} = await api.post("/delete",params);
+    return status;
+}
+
 
 export {
     loadTree,
     openFile,
     saveFile,
-    createFolder
+    createFolder,
+    rename,
+    del
 }

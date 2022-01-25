@@ -3,7 +3,7 @@ import Editor from "./components/editor";
 
 import File from './components/file';
 import Tree from "./components/tree";
-
+import ContextMenu from './components/contextMenu';
 import { Context } from './utils/context';
 import { createFolder, loadTree, openFile } from './utils/ftp';
 import tree from './utils/tree';
@@ -14,11 +14,12 @@ const root = window.root;
 
 const App = () => {
   const [currentPath, setCurrentPath] = useState("");
-  const [treeFiles, setTreeFiles] = useState({"/":[]}); // Cache
+  const [treeFiles, setTreeFiles] = useState({ "/": [] }); // Cache
   const [currentFolder, setCurrentFolder] = useState("/");
   const [filesOpen, setFilesOpen] = useState({});
   const [loading, setLoading] = useState(true);
   const [msgID, setMsgID] = useState(0);
+  const [contextMenu,setContextMenu] = useState(false);
   const ref = useRef(null);
   const msgRef = useRef(null);
 
@@ -97,24 +98,24 @@ const App = () => {
     return msgRef.current.querySelector("#" + id);
   }
 
-  const create = async() => {
+  const create = async () => {
     // path = $(this).attr("data-path");
-    
+
     const name = prompt("Salvar arquivo em: " + system + root + currentFolder);
     if (name) {
-      let path = currentFolder+name;
-      const _treeFiles = {...treeFiles};
+      let path = currentFolder + name;
+      const _treeFiles = { ...treeFiles };
       if (name.indexOf(".") == -1) {
         path += "/";
-        const result = await createFolder(currentFolder,name);
-        if(result == 1){
+        const result = await createFolder(currentFolder, name);
+        if (result == 1) {
           _treeFiles[path] = [];
           _treeFiles[currentFolder].push({ name: capitalize(name), path, type: "folder" });
           setTreeFiles(_treeFiles)
         }
         return false;
       }
-      const file = {  name , type: "file", code: "", isEdit: false, path }
+      const file = { name, type: "file", code: "", isEdit: false, path }
       _treeFiles[currentFolder].push(file);
       addFilesOpen(file);
       message('<div class="ui visible warning message"><div class="header">Atenção</div>Esse arquivo não existe, ao salvar o arquivo será criado.</div>', 10000);
@@ -126,15 +127,35 @@ const App = () => {
   const currentTree = useMemo(() => treeFiles[currentFolder]?.sort((a) => a.type == "folder" ? -1 : 1) ?? [], [treeFiles, currentFolder]);
   const currentFile = useMemo(() => filesOpen[currentPath] ?? [], [currentPath, filesOpen]);
   const nameFolder = useMemo(() => {
-    const a =  currentFolder == "/" ? "Principal" : capitalize(currentFolder.split("/").slice(-2)[0]);
-    return a; 
+    const a = currentFolder == "/" ? "Principal" : capitalize(currentFolder.split("/").slice(-2)[0]);
+    return a;
   }, [currentFolder]);
+
+  const value = {
+    treeFiles,
+    ref,
+    currentPath,
+    currentFile,
+    filesOpen,
+    contextMenu,
+    changeFolder,
+    addFilesOpen,
+    closeFileOpen,
+    changeFileOpen,
+    setFilesOpen,
+    message,
+    setTreeFiles,
+    setContextMenu
+  }
+
+
   return (
-    <Context.Provider value={{ ref, currentPath, currentFile, filesOpen, changeFolder, addFilesOpen, closeFileOpen, changeFileOpen, setFilesOpen, message }}>
+    <Context.Provider value={value}>
+      {contextMenu && <ContextMenu {...contextMenu} />}
       <div className="ui form" id="arquivoSave">
         <div className="ui grid">
           <div id="left">
-            <div className="ui vertical menu" id="menuFiles">
+            <div className="ui vertical menu fluid" id="menuFiles">
               <div className="header item">SystemHB {(!loading && currentFolder != "/") && <a style={{ cursor: "pointer" }} onClick={backFolder}><i className="reply icon"></i></a>}</div>
               {loading && <i className="notched circle loading icon"></i> || (
                 <>
@@ -150,7 +171,7 @@ const App = () => {
                 {Object.entries(filesOpen).map(([, item]) => <File isEdit={item.isEdit} name={item.name} path={item.path} />)}
               </div>
               <div className="right menu">
-                <a className="ui item path">{system+root+currentPath ?? ""}</a>
+                <a className="ui item path">{system + currentPath ?? ""}</a>
                 <a className="ui item" id="expandCode" onClick={() => document.querySelector("body").classList.toggle("fullscreen")}><i className="expand icon"></i></a>
               </div>
             </div>
